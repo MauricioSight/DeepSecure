@@ -1,0 +1,29 @@
+phase: train
+
+dataset:
+  name: TOW-IDS
+  subset: 0.1
+  raw_x_path: data/tow-ids-dataset/raw/Automotive_Ethernet_with_Attack_original_10_17_19_50_training.pcap
+  raw_y_path: data/tow-ids-dataset/raw/y_train.csv
+  processed_path: data/tow-ids-dataset/processed
+
+feature:
+  generator: sliding-window-generator
+  window_size: 44
+  window_stride: 1
+  number_of_bytes: 52
+
+model:
+  name: TNCAnomalyDetector
+  hidden_size: 64
+  levels: 2
+  kernel_size: 2
+  T: 1
+  dropout: 0.3
+
+training:
+  batch_size: 32
+  num_epochs: 1
+  learning_rate: 0.001
+  early_stopping_patience: 5
+  criterion: mean_squared_error
