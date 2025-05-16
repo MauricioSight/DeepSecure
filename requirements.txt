@@ -1,0 +1,6 @@
+pandas
+numpy
+scapy
+scikit-learn
+torch
+wandb
