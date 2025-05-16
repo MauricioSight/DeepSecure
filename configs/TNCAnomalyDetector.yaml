@@ -16,7 +16,7 @@ feature:
 model:
   name: TNCAnomalyDetector
   hidden_size: 64
-  levels: 2
+  levels: 1
   kernel_size: 2
   T: 1
   dropout: 0.3

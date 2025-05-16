@@ -32,17 +32,21 @@ class OptunaOptimizer(BaseOptimizer):
     def _suggest(self, trial, name, space):
         kind = space[0]
         args = space[1:]
+        step = None
+        if len(args) > 2:
+            args = args[:-1]
+            step = args[-1]
 
-        if kind == "uniform":
-            return trial.suggest_float(name, *args)
-        elif kind == "loguniform":
-            return trial.suggest_float(name, *[float(a) for a in args], log=True)
+        if kind == "float":
+            return trial.suggest_float(name, *[float(a) for a in args], step=step)
+        elif kind == "float_log":
+            return trial.suggest_float(name, *[float(a) for a in args], step=step, log=True)
         elif kind == "int":
-            return trial.suggest_int(name, *args)
+            return trial.suggest_int(name, *[int(a) for a in args])
         elif kind == "categorical":
             return trial.suggest_categorical(name, args)
         elif kind == "discrete_uniform":
-            return trial.suggest_float(name, *args, step=args[-1])
+            return trial.suggest_float(name, *[float(a) for a in args], step=step)
         else:
             raise ValueError(f"Unknown suggestion type: {kind}")
 

@@ -1,0 +1,17 @@
+train_config: TNCAnomalyDetector
+debug: true
+
+framework: optuna
+algorithm: tpe
+
+n_trials: 30
+objective_metric: AUCROC
+direction: maximize
+
+search_space:
+  training-learning_rate: [float_log, 1e-5, 1e-2]
+  model-hidden_size: [int, 4, 32, 4]
+  model-levels: [int, 1, 2]
+  model-kernel_size: [int, 1, 5]
+  model-T: [int, 1, 2]
+  model-dropout: [float, 0.3, 0.5, 0.15]
