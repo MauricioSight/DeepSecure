@@ -43,9 +43,9 @@ class TemporalBlock(nn.Module):
         self.init_weights()
 
     def init_weights(self):
-        self.conv1.weight.data.normal_(0, 0.01)
+        nn.init.kaiming_normal_(self.conv1.weight)
         if self.T == 2:
-            self.conv2.weight.data.normal_(0, 0.01)
+            nn.init.kaiming_normal_(self.conv2.weight)
         if self.downsample is not None:
             self.downsample.weight.data.normal_(0, 0.01)
 

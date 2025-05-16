@@ -109,7 +109,7 @@ class TrainValidation:
         self.trainer.execute(train_loader, val_loader)
 
         # Test the model
-        y_true, y_pred, labels_idx, test_loss = self.trainer.validate(test_loader)
+        y_true, y_pred, labels_idx, test_loss = self.trainer.test(test_loader)
         y_pred = y_pred.cpu().numpy()
         del y_true
 

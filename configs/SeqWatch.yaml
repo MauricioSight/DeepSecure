@@ -2,7 +2,6 @@ phase: train
 
 dataset:
   name: TOW-IDS
-  subset: 0.1
   raw_x_path: data/tow-ids-dataset/raw/Automotive_Ethernet_with_Attack_original_10_17_19_50_training.pcap
   raw_y_path: data/tow-ids-dataset/raw/y_train.csv
   processed_path: data/tow-ids-dataset/processed
@@ -11,7 +10,7 @@ feature:
   generator: sliding-window-generator
   window_size: 44
   window_stride: 1
-  number_of_bytes: 52
+  number_of_bytes: 58
 
 model:
   name: SeqWatch

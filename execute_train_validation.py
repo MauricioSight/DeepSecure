@@ -11,12 +11,15 @@ from utils.config_handle import load_config, flatten_dict
 from utils.experiment_io import generate_run_id, get_run_dir, save_run_artifacts
 from utils.seed_all import seed_all
 
-def main(config = None, values=None, labels=None):
+def main(config=None, values=None, labels=None):
     config = load_config(config)
 
-    run_id = generate_run_id(model_name=config['model']['name'], dataset_name=config['dataset']['name'], phase=config['phase'])
+    if not hasattr(config, 'run_id'):
+        run_id = generate_run_id(model_name=config['model']['name'], dataset_name=config['dataset']['name'], phase=config['phase'])
+        config['run_id'] = run_id
+    
+    run_id = config['run_id']
     run_dir = get_run_dir(run_id)
-    config['run_id'] = run_id
 
     # Setup logger
     logger = Logger(name="train_validation", log_file=f"{run_dir}/output.log", 

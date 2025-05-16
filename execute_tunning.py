@@ -26,16 +26,20 @@ def apply_trial_to_config(config: dict, trial_params: dict) -> dict:
 
 def main():
     # Load the configuration
-    tune_config = load_config()
-    train_config = load_config(config_name=tune_config['train_config'])
+    tune_config = load_config(default_file_name='tune_config')
+    train_config = load_config(config_name=tune_config['train_config'], default_file_name='train_config')
     objective_metric = tune_config['objective_metric']
 
-    run_id = generate_run_id(model_name=tune_config['framework'], dataset_name=tune_config['algorithm'], 
-                             phase=tune_config['train_config'])
+    if not hasattr(tune_config, 'run_id'):
+        run_id = generate_run_id(model_name=tune_config['framework'], dataset_name=tune_config['algorithm'], 
+                                phase=tune_config['train_config'])
+        tune_config['run_id'] = run_id
+    
+    run_id = tune_config['run_id']
     run_dir = get_run_dir(run_id)
-    tune_config['run_id'] = run_id
 
-    save_run_tune(run_dir, config=tune_config)
+    tune_config['experiments_ids'] = []
+    save_run_tune(run_dir, tune_config=tune_config, train_config=train_config)
 
     # Setup logger
     tune_logger = Logger(name="tune", log_file=f"{run_dir}/output.log", 
@@ -45,13 +49,11 @@ def main():
     tune_logger.info(f"[ RUN ID: {run_id} ]")
 
     # Load the dataset
-    # tune_logger.debug("Loading data...")
-    # feature_generator = SlidingWindowGenerator(train_config, tune_logger)
-    # dataset_loader = TOWIDSFeatureLoader(train_config, tune_logger, feature_generator)
-    # values, labels = dataset_loader.load_processed()
-    # tune_logger.info("Data loaded successfully.")
-    values = None
-    labels = None
+    tune_logger.debug("Loading data...")
+    feature_generator = SlidingWindowGenerator(train_config, tune_logger)
+    dataset_loader = TOWIDSFeatureLoader(train_config, tune_logger, feature_generator)
+    values, labels = dataset_loader.load_processed()
+    tune_logger.info("Data loaded successfully.")
 
     # Initialize the optimizer
     tune_logger.info("Initializing optimizer...")
@@ -62,6 +64,15 @@ def main():
 
         updated_config = apply_trial_to_config(train_config, params)
         tune_logger.debug(f"Updated config: {json.dumps(updated_config, indent=4)}")
+
+        # Set the run ID for this trial
+        experiment_id = generate_run_id(model_name=updated_config['model']['name'], 
+                                        dataset_name=updated_config['dataset']['name'], phase=updated_config['phase'])
+        updated_config['run_id'] = experiment_id
+
+        # Save run_id
+        tune_config['experiments_ids'].append(experiment_id)
+        save_run_tune(run_dir, tune_config=tune_config, train_config=train_config)
         
         metrics = execute_train_validation_main(config=updated_config, values=values, labels=labels)
 
