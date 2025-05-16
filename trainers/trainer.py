@@ -71,7 +71,6 @@ class Trainer:
         ret = 0
         # Early stopping update
         if val_loss < self.best_val_loss - self.early_stopping_delta:
-            self.logger.info(f"Validation loss improved from {self.best_val_loss} to {val_loss}. Saving model...")
             self.__save_model_state_dict()
             self.best_val_loss = val_loss
             self.epochs_without_improvement = 0
