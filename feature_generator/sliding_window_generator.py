@@ -7,17 +7,18 @@ class SlidingWindowGenerator:
     def __init__(self, config, logger):
         self.logger = logger
 
-        self.raw_y_path = config.get('raw_y_path')
-        self.raw_x_path = config.get('raw_x_path')
+        self.phase = config.get("phase")
+        self.dataset_config = config.get('dataset')
+        self.raw_y_path = self.dataset_config.get('raw_y_path')
+        self.raw_x_path = self.dataset_config.get('raw_x_path')
+        self.processed_path = self.dataset_config.get("processed_path")
 
-        self.feature_generator = config.get('feature_generator')
-        self.feature_config = config.get('feature_config')
+        self.feature_config = config.get('feature')
+        self.feature_generator = self.feature_config.get('generator')
         self.window_size = self.feature_config.get('window_size')
         self.window_stride = self.feature_config.get('window_stride')
         self.number_of_bytes = self.feature_config.get('number_of_bytes')
 
-        self.phase = config.get("phase")
-        self.processed_path = config.get("processed_path")
         self.processed_path_suffix = (
             f"fg_{self.feature_generator}_"
             f"Wsize_{self.window_size}_"

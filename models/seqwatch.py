@@ -67,6 +67,4 @@ class SeqWatch(BaseModel):
         return x
     
     def featuring(self, values: np.ndarray, _):
-        # y = values.clone()
-
         return values, values

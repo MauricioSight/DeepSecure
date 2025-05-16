@@ -4,3 +4,4 @@ scapy
 scikit-learn
 torch
 wandb
+optuna

@@ -1,4 +1,3 @@
-import json
 import random
 
 import torch
@@ -7,16 +6,17 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 
 from metrics.evaluation import compute_metrics
+from trainers.trainer import Trainer
 
 class TrainValidation:
-    def __init__(self, config, logger, model, trainer, tracker):
+    def __init__(self, config, logger, model, trainer: Trainer, tracker):
         self.config = config
         self.model = model
         self.logger = logger
         self.tracker = tracker
         self.trainer = trainer
 
-        self.training_config = config.get('training_config', {})
+        self.training_config = config.get('training')
         self.batch_size = self.training_config.get('batch_size')
         self.train_size = 0.8
         
@@ -103,23 +103,26 @@ class TrainValidation:
         X, y = self.model.featuring(values, labels)
 
         train_loader, val_loader, test_loader = self.__create_loaders(X, y, labels)
+        del  X, y
 
         # Train the model
         self.trainer.execute(train_loader, val_loader)
 
         # Test the model
-        _, y_pred, labels_idx, test_loss = self.trainer.validate(test_loader)
+        y_true, y_pred, labels_idx, test_loss = self.trainer.validate(test_loader)
         y_pred = y_pred.cpu().numpy()
+        del y_true
 
         # Select labels_idx from labels
-        labels = [labels.iloc[i]['label'] for i in labels_idx]
+        label_values = [labels.iloc[i]['label'] for i in labels_idx]
+        del labels_idx
 
         # Compute metrics
-        metrics = compute_metrics(labels, y_pred)
+        metrics = compute_metrics(label_values, y_pred, logger=self.logger)
 
-        self.logger.info(f"Metrics:")
-        self.logger.info(json.dumps(metrics, indent=4, sort_keys=True))
         self.tracker.log_metrics({**metrics, 'test_loss': test_loss})
 
-        return labels, y_pred, metrics
+        del train_loader, val_loader, test_loader
+
+        return label_values, y_pred, metrics
     

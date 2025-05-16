@@ -1,24 +1,22 @@
 phase: train
-dataset: TOW-IDS
-dataset_subset: 0.1
-feature_generator: sliding-window-generator
 
-feature_config:
+dataset:
+  name: TOW-IDS
+  subset: 0.1
+  raw_x_path: data/tow-ids-dataset/raw/Automotive_Ethernet_with_Attack_original_10_17_19_50_training.pcap
+  raw_y_path: data/tow-ids-dataset/raw/y_train.csv
+  processed_path: data/tow-ids-dataset/processed
+
+feature:
+  generator: sliding-window-generator
   window_size: 44
   window_stride: 1
   number_of_bytes: 52
 
-raw_x_path: data/tow-ids-dataset/raw/Automotive_Ethernet_with_Attack_original_10_17_19_50_training.pcap
-raw_y_path: data/tow-ids-dataset/raw/y_train.csv
+model:
+  name: SeqWatch
 
-processed_path: data/tow-ids-dataset/processed
-processed_x_path: data/tow-ids-dataset/processed/X_train_fg_sliding-window-generator_Wsize_44_Wstride_1_nb_52.npz
-processed_y_path: data/tow-ids-dataset/processed/y_train_fg_sliding-window-generator_Wsize_44_Wstride_1_nb_52.csv
-
-model_config:
-  model_name: SeqWatch
-
-training_config:
+training:
   batch_size: 32
   num_epochs: 1
   learning_rate: 0.001

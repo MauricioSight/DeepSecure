@@ -1,22 +1,41 @@
 import logging
 
-def setup_logger(name, log_file, level=logging.INFO):
+class Logger:
     """
-    Function to setup a logger with a specific name and log file.
+    Logger class to handle logging for the application.
     """
-    formatter = logging.Formatter('%(asctime)s| %(levelname)s | %(message)s')
+    def __init__(self, name, log_file, level=logging.INFO):
+        self.logger = self.__setup_logger(name, log_file, level)
 
-    # Create handlers
-    file_handler = logging.FileHandler(log_file)
-    file_handler.setFormatter(formatter)
+    def __setup_logger(self, name, log_file, level):
+        """
+        Function to setup a logger with a specific name and log file.
+        """
+        formatter = logging.Formatter('%(asctime)s| %(levelname)s | %(message)s')
 
-    console_handler = logging.StreamHandler()
-    console_handler.setFormatter(formatter)
+        # Create handlers
+        file_handler = logging.FileHandler(log_file)
+        file_handler.setFormatter(formatter)
 
-    # Create a logger
-    logger = logging.getLogger(name)
-    logger.setLevel(level)
-    logger.addHandler(file_handler)
-    logger.addHandler(console_handler)
+        console_handler = logging.StreamHandler()
+        console_handler.setFormatter(formatter)
 
-    return logger
+        # Create a logger
+        logger = logging.getLogger(name)
+        logger.setLevel(level)
+        logger.addHandler(file_handler)
+        logger.addHandler(console_handler)
+
+        return logger
+
+    def info(self, message):
+        self.logger.info(message)
+
+    def error(self, message):
+        self.logger.error(message)
+
+    def debug(self, message):
+        self.logger.debug(message)
+
+    def warning(self, message):
+        self.logger.warning(message)

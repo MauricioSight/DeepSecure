@@ -1,5 +1,5 @@
 import mlflow
-from loggers.base_tracker import BaseTracker
+from tracker.base_tracker import BaseTracker
 
 class MLflowTracker(BaseTracker):
     def start_run(self, run_name: str, config: dict):

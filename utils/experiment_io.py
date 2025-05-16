@@ -7,9 +7,9 @@ import torch
 import pandas as pd
 
 
-def generate_run_id(model_name: str, dataset_name: str) -> str:
+def generate_run_id(model_name: str, dataset_name: str, phase: str) -> str:
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    return f"{model_name}_{dataset_name}_{timestamp}"
+    return f"{model_name}_{dataset_name}_{phase}_{timestamp}"
 
 def get_run_dir(run_id: str, base_dir: str = "runs") -> Path:
     run_dir = Path(base_dir) / run_id
@@ -34,6 +34,17 @@ def save_run_artifacts(run_dir, model, labels, y_pred, metrics: dict, config: di
     # Save config
     with open(run_dir / "config.yaml", "w") as f:
         yaml.dump(config, f)
+
+def save_run_tune(run_dir, tune_config: dict, train_config: dict):
+    run_dir = Path(run_dir)
+    run_dir.mkdir(parents=True, exist_ok=True)
+
+    # Save config
+    with open(run_dir / "tune_config.yaml", "w") as f:
+        yaml.dump(tune_config, f)
+
+    with open(run_dir / "train_config.yaml", "w") as f:
+        yaml.dump(tune_config, f)
 
 def load_run_artifacts(run_dir):
     run_dir = Path(run_dir)

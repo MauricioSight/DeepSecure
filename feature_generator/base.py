@@ -9,7 +9,9 @@ class FeatureGenerator(ABC):
     def __init__(self, config: typing.Dict):
         self.config = config
 
-        self.processed_path = config.get("processed_path")
+        self.dataset_config = config.get('dataset')
+        self.processed_path = self.dataset_config.get("processed_path")
+        self.subset = self.dataset_config.get("subset")
 
     @abstractmethod
     def load_raw(self) -> tuple[np.ndarray, pd.DataFrame]:
@@ -28,7 +30,7 @@ class FeatureGenerator(ABC):
         processed = self.generate(df)
         self.save(processed)
 
-    def load_processed(self, subset: int = None) -> tuple[np.ndarray, pd.DataFrame]:
+    def load_processed(self) -> tuple[np.ndarray, pd.DataFrame]:
         if not os.path.exists(self.x_path):
             self.run()
 
@@ -37,8 +39,11 @@ class FeatureGenerator(ABC):
 
         y = pd.read_csv(self.y_path, index_col=0)
 
-        if subset is not None:
-            indices = np.random.choice(len(X), size=int(subset*len(X)), replace=False)
+
+        if self.subset is not None:
+            self.logger.warning(f"Loading data with subset of {self.subset}%")
+
+            indices = np.random.choice(len(X), size=int(self.subset*len(X)), replace=False)
             X = X[indices]
             y = y.iloc[indices].reset_index(drop=True)
 

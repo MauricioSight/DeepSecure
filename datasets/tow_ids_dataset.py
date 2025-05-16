@@ -12,14 +12,15 @@ class TOWIDSFeatureLoader(FeatureGenerator):
 
         self.feature_generator = feature_generator
 
-        self.raw_y_path = config.get('raw_y_path')
-        self.raw_x_path = config.get('raw_x_path')
+        self.dataset_config = config.get('dataset')
+        self.raw_y_path = self.dataset_config.get('raw_y_path')
+        self.raw_x_path = self.dataset_config.get('raw_x_path')
 
         x_path, y_path = self.feature_generator.get_output_path()
         self.x_path = x_path
         self.y_path = y_path
 
-        self.feature_config = config.get('feature_config')
+        self.feature_config = config.get('feature')
         self.number_of_bytes = self.feature_config.get('number_of_bytes')
 
     def run(self):
@@ -135,8 +136,3 @@ class TOWIDSFeatureLoader(FeatureGenerator):
         y.to_csv(y_path)
 
         self.logger.info(f"Features saved to {x_path}.")
-
-    def load_processed(self, subset = None) -> Tuple[np.ndarray, pd.DataFrame]:
-        if subset is not None:
-            self.logger.info(f"Loading processed data with subset of {subset}%")
-        return super().load_processed(subset)

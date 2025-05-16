@@ -10,19 +10,12 @@ class Trainer:
         self.model = model
         self.device = self.__get_device()
 
-        self.training_config = config.get('training_config')
+        self.training_config = config.get('training')
         self.learning_rate = self.training_config.get('learning_rate')
         self.early_stopping_patience = self.training_config.get('early_stopping_patience')
         self.num_epochs = self.training_config.get('num_epochs')
         self.criterion = self.training_config.get('criterion')
         self.best_val_loss = float("inf")
-
-    def __save_model_state_dict(self):
-        self.model.eval()
-
-        output_filename = f"{self.models_output_path}/pytorch_model_{self._model_name}_entire_dataset"
-
-        torch.save(self.model.state_dict(), output_filename)
 
     def __get_device(self):
         if torch.cuda.is_available():
@@ -92,7 +85,7 @@ class Trainer:
             # metrics logs
             if batch_idx % 1000 == 0 or batch_idx == len(train_loader) - 1:
                 self.logger.info('Epoch: {} \t[{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
-                    epoch, batch_idx * len(data), len(train_loader.dataset), 
+                    epoch, batch_idx, len(train_loader.dataset), 
                     100. * batch_idx / len(train_loader), loss.item()))
         
         train_loss = train_loss / len(train_loader)
@@ -134,6 +127,7 @@ class Trainer:
         criterion, criterion_without_reduction = self.__get_criterion()
         optimizer = torch.optim.Adam(self.model.parameters(), lr=self.learning_rate)
 
+        self.logger.warning(f"Running for {self.num_epochs} epochs")
         self.logger.info(f"-------------------- Training started -------------------")
         for epoch in range(self.num_epochs):
             train_loss = self.train(train_loader, criterion, optimizer, epoch)

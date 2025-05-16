@@ -1,0 +1,12 @@
+train_config: SeqWatch
+debug: true
+
+framework: optuna
+algorithm: tpe
+
+n_trials: 30
+objective_metric: AUCROC
+direction: maximize
+
+search_space:
+  training-learning_rate: [loguniform, 1e-5, 1e-2]
