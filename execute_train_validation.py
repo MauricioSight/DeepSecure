@@ -8,14 +8,15 @@ from datasets.tow_ids_dataset import TOWIDSFeatureLoader
 from feature_generator.sliding_window_generator import SlidingWindowGenerator
 from loggers.logging import Logger
 from utils.config_handle import load_config, flatten_dict
-from utils.experiment_io import generate_run_id, get_run_dir, save_run_artifacts
+from utils.experiment_io import get_run_id, get_run_dir, save_run_artifacts
 from utils.seed_all import seed_all
 
 def main(config=None, values=None, labels=None):
-    config = load_config(config)
+    if config is None:
+        config = load_config()
 
-    if not hasattr(config, 'run_id'):
-        run_id = generate_run_id(model_name=config['model']['name'], dataset_name=config['dataset']['name'], phase=config['phase'])
+    if 'run_id' not in config:
+        run_id = get_run_id(config, [config['model']['name'], config['dataset']['name'], config['phase']])
         config['run_id'] = run_id
     
     run_id = config['run_id']
@@ -23,7 +24,7 @@ def main(config=None, values=None, labels=None):
 
     # Setup logger
     logger = Logger(name="train_validation", log_file=f"{run_dir}/output.log", 
-                    level=logging.DEBUG if hasattr(config, 'debug') else logging.INFO)
+                    level=logging.DEBUG if 'debug' in config and config['debug'] else logging.INFO)
 
     # log run id
     logger.info("Initiating training and validation...")

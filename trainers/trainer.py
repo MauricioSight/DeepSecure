@@ -1,7 +1,8 @@
 import torch
 from torch import nn
 
-from utils.experiment_io import get_run_dir
+from metrics.evaluation import get_inference_time, pytorch_compute_model_size_mb
+from utils.experiment_io import get_run_dir, load_run_artifacts
 
 class Trainer:
     def __init__(self, config, logger, tracker, model):
@@ -23,6 +24,8 @@ class Trainer:
         self.criterion = self.training_config.get('criterion')
         self.best_val_loss = float("inf")
 
+        self.loaded = False
+        self.checkpoint_epoch = 0
         self.__load_model_state_dict()
 
     def __save_model_state_dict(self):
@@ -30,8 +33,11 @@ class Trainer:
     
     def __load_model_state_dict(self):
         if self.model_dir.exists():
-            self.model.load_state_dict(torch.load(self.model_dir, map_location='cpu'))
+            artifacts = load_run_artifacts(self.run_dir)
+            self.model.load_state_dict(artifacts['model_state_dict'])
             self.model = self.model.to(self.device)
+            self.loaded = True
+            self.checkpoint_epoch = artifacts['metrics']['epochs']
 
     def __get_device(self):
         if torch.cuda.is_available():
@@ -124,7 +130,7 @@ class Trainer:
 
         ret = self.__check_early_stopping(val_loss)
         
-        self.logger.info('Epoch: {} \tEarlyStopping counter: {} out of {}. Current validation loss: {:.6f}'.format(
+        self.logger.info('Epoch: {} \tEarlyStopping: {} out of {}. Val loss: {:.6f}'.format(
             epoch, self.epochs_without_improvement, self.early_stopping_patience, val_loss))
 
         return ret, val_loss
@@ -155,7 +161,21 @@ class Trainer:
 
         self.logger.info('Test Loss: {:.6f}'.format(test_loss))
 
-        return y_true, y_pred, labels, test_loss
+        # Resource metrics
+        self.logger.info('Collecting resource metrics...')
+        first_batch = next(iter(test_loader))
+        data = first_batch[0]
+        dummy_input = torch.randn_like(data)
+        cpu_inference_time, gpu_inference_time, mps_inference_time = get_inference_time(self.model, dummy_input)
+        model_size_mb = pytorch_compute_model_size_mb(self.model)
+        resource_metrics = {
+            'cpu_inference_time': cpu_inference_time,
+            'gpu_inference_time': gpu_inference_time,
+            'mps_inference_time': mps_inference_time,
+            'model_size_mb': model_size_mb
+        }
+
+        return y_true, y_pred, labels, test_loss, resource_metrics
 
     def execute(self, train_loader, val_loader):
         criterion, _ = self.__get_criterion()
@@ -163,7 +183,10 @@ class Trainer:
 
         self.logger.warning(f"Running for {self.num_epochs} epochs")
         self.logger.info(f"-------------------- Training started -------------------")
-        for epoch in range(self.num_epochs):
+        if self.loaded:
+            _, val_loss = self.validate(val_loader, criterion, -1)
+        for epoch in range(self.checkpoint_epoch, self.num_epochs):
+            self.epochs = epoch
             train_loss = self.train(train_loader, criterion, optimizer, epoch)
             ret, val_loss = self.validate(val_loader, criterion, epoch)
 
@@ -172,4 +195,5 @@ class Trainer:
             if (ret < 0):
                 self.logger.info(
                     f"Early stopping! Validation loss hasn't improved for {self.early_stopping_patience} epochs")
+                self.__load_model_state_dict()
                 break

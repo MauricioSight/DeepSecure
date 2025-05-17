@@ -4,22 +4,19 @@ import yaml
 
 from utils.experiment_io import get_run_dir
 
-def load_config(config=None, config_name=None, default_file_name=None):
-    if config is not None:
-        return config
-
+def load_config(config_name=None, default_file_name="config"):
     parser = argparse.ArgumentParser(description='Execute train validation step')
     parser.add_argument('--config', required=False, help='YAML File containing the configs')
     parser.add_argument('--run_id', required=False, help='Run ID for the experiment')
     args = parser.parse_args()
 
-    if hasattr(args, 'run_id') and args.run_id is not None:
+    if 'run_id' in args and args.run_id is not None:
         run_id = args.run_id
         path = get_run_dir(run_id)
         path = path / f"{default_file_name}.yaml"
     
     else:
-        model_name = 'TNCAnomalyDetector' if args.config is None else args.config
+        model_name = 'tune-TNCAnomalyDetector' if args.config is None else args.config
         config_name = model_name if config_name is None else config_name
         path = f"configs/{config_name}.yaml"
 

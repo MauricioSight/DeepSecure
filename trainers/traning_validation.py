@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
 
-from metrics.evaluation import compute_metrics
+from metrics.evaluation import compute_metrics, log_resource_metrics
 from trainers.trainer import Trainer
 
 class TrainValidation:
@@ -109,7 +109,7 @@ class TrainValidation:
         self.trainer.execute(train_loader, val_loader)
 
         # Test the model
-        y_true, y_pred, labels_idx, test_loss = self.trainer.test(test_loader)
+        y_true, y_pred, labels_idx, test_loss, resource_metrics = self.trainer.test(test_loader)
         y_pred = y_pred.cpu().numpy()
         del y_true
 
@@ -119,7 +119,10 @@ class TrainValidation:
 
         # Compute metrics
         metrics = compute_metrics(label_values, y_pred, logger=self.logger)
+        metrics['epochs'] = self.trainer.epochs
+        metrics['resource_metrics'] = resource_metrics
 
+        log_resource_metrics(self.logger, resource_metrics)
         self.tracker.log_metrics({**metrics, 'test_loss': test_loss})
 
         del train_loader, val_loader, test_loader
